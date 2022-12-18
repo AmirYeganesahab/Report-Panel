@@ -63,7 +63,7 @@ class Graph(QDialog):
         self.labels = labels
         self.data = data
 
-    def create_layout(self):
+    def create_layout(self, title=''):
         
         # a figure instance to plot on
         self.figure = plt.figure()
@@ -81,11 +81,11 @@ class Graph(QDialog):
         layout.addWidget(self.canvas)
         # setting layout to the main window
         self.figure.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.2, wspace=0.5, hspace=0.5)
-        self.generate_plot()
+        self.generate_plot(title)
 
         return layout
   
-    def generate_plot(self):
+    def generate_plot(self, title):
         thisColors = []
         for i,d in enumerate(self.data):
             print(d)
@@ -99,6 +99,7 @@ class Graph(QDialog):
             self.ax = self.figure.add_subplot(111,position=[0, 0, 1, 1])
             self.ax.format_coord = lambda x, y: ""
             self.ax.cla()
+            self.ax.set_title(title)
             # plot data
             self.ax.bar(self.labels,self.data,color=thisColors)
             self.ax.set_ylim(top=max(self.data)+25)
@@ -111,6 +112,7 @@ class Graph(QDialog):
             self.ax = self.figure.add_subplot(111,position=[0, 0, 1, 1])
             self.ax.format_coord = lambda x, y: ""
             self.ax.cla()
+            self.ax.set_title(title)
             # plot data
             patches,_,_= self.ax.pie(self.data,labels=self.labels,shadow=False, autopct='%1.f%%',startangle=0) # refresh canvas
             self.figure.legend(patches, self.labels,bbox_to_anchor=(0.8,0.5), loc='right')
@@ -340,14 +342,14 @@ class multipleQuestions(QMainWindow):
             pass
         if (not self.radiob.b1.isChecked()) and (not self.radiob.b2.isChecked()):
             self.radiob.b2.setChecked(True)
-            
+        title = f'Multiple Selection: {text}'  
         if self.radiob.b1.isChecked():            
             self.graph = Graph(labels=self.summary[text].keys(),data=self.percentage1,plot_type='bar' )
-            graph_layout = self.graph.create_layout()
+            graph_layout = self.graph.create_layout(title)
             self.uplyt.addLayout(graph_layout)
         elif self.radiob.b2.isChecked():
             self.graph = Graph(labels=self.summary[text].keys(),data=self.percentage1,plot_type='pie' )
-            graph_layout = self.graph.create_layout()
+            graph_layout = self.graph.create_layout(title)
             self.uplyt.addLayout(graph_layout)
         
 
