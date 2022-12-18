@@ -103,7 +103,7 @@ class Graph(QDialog):
             ax.set_xticks(np.arange(len(self.labels)),labels,rotation=90)
             xlocs = ax.get_xticks()
             for i, v in enumerate(self.data):
-                plt.text(xlocs[i], v + 0.5, f'{v}%')
+                ax.text(xlocs[i], v + 0.5, f'{v}%')
         elif self.plot_type=='pie':
             self.figure.clear()
             ax = self.figure.add_subplot(111,position=[0, 0, 1, 1])

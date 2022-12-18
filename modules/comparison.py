@@ -99,7 +99,8 @@ class Graph(QDialog):
             ax.set_xticks(np.arange(len(labels)),labels,rotation=90)
             xlocs = ax.get_xticks()
             for i, v in enumerate(data):
-                plt.text(xlocs[i], v + 0.5, f'{v}%')
+                ax.text(xlocs[i], v + 0.5, f'{v}%')
+                print(xlocs[i],v + 0.5)
         elif plot_type=='pie':
             self.figure.clear()
             ax = self.figure.add_subplot(111,position=[0, 0, 1, 1])
@@ -867,18 +868,12 @@ class ComparisonWindow(QWidget):
         percentages = [int(round(p)) for p in self.lpercentages]
         if (not self.left_radiob.b1.isChecked()) and (not self.left_radiob.b2.isChecked()):
             self.left_radiob.b2.setChecked(True)
-        
-        # del self.left_pannel.graph
-        # self.left_pannel.graph = Graph()
+
         if self.left_radiob.b1.isChecked():
             plot_type='bar'
         elif self.left_radiob.b2.isChecked():
             plot_type='pie'
         self.left_pannel.graph.generate_plot(labels=self.llabels,data=percentages,plot_type=plot_type)
-        # self.tltop.addWidget(self.left_radiob)
-        # self.tlbottom = clearLayout(self.tlbottom)
-        # self.tlbottom.addLayout(self.left_pannel.graph.layout)
-        # self.trbottom.addLayout(layout)
             
     def create_right_chart(self):
         percentages = [int(round(p)) for p in self.rpercentages]
@@ -892,11 +887,6 @@ class ComparisonWindow(QWidget):
             plot_type='pie'
             
         self.right_pannel.graph.generate_plot(labels=self.rlabels,data=percentages,plot_type=plot_type)
-        # graph = Graph(labels=self.rlabels,data=percentages,plot_type=plot_type)
-        # layout = graph.create_layout()
-        # self.trbottom=clearLayout(self.trbottom)
-        # self.trbottom.addLayout(graph_layout)
-        # self.trbottom.update()
 
     def create_left_table(self):
         try:
