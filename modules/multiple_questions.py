@@ -96,6 +96,7 @@ class Graph(QDialog):
         
         if self.plot_type=='bar':
             self.figure.clear()
+            self.figure.set_tight_layout(tight=True)
             self.ax = self.figure.add_subplot(111,position=[0, 0, 1, 1])
             self.ax.format_coord = lambda x, y: ""
             self.ax.cla()
@@ -103,19 +104,25 @@ class Graph(QDialog):
             # plot data
             self.ax.bar(self.labels,self.data,color=thisColors)
             self.ax.set_ylim(top=max(self.data)+25)
-            self.ax.set_xticks(np.arange(len(self.labels)),self.labels,rotation=90)
+            self.ax.set_xticks(np.arange(len(self.labels)),self.labels,rotation=30)
             xlocs = self.ax.get_xticks()
             for i, v in enumerate(self.data):
                 self.ax.text(xlocs[i], v + 0.5, f'{v}%')
         elif self.plot_type=='pie':
             self.figure.clear()
+            self.figure.set_tight_layout(tight=True)
             self.ax = self.figure.add_subplot(111,position=[0, 0, 1, 1])
             self.ax.format_coord = lambda x, y: ""
             self.ax.cla()
             self.ax.set_title(title)
             # plot data
             patches,_,_= self.ax.pie(self.data,labels=self.labels,shadow=False, autopct='%1.f%%',startangle=0) # refresh canvas
-            self.figure.legend(patches, self.labels,bbox_to_anchor=(0.8,0.5), loc='right')
+            legend = self.ax.legend(patches, self.labels,bbox_to_anchor=(1.5,0.5), loc='right')
+            oldLegPos = legend.get_bbox_to_anchor()._bbox
+            # print(oldLegPos.bbox)
+            legend.set_draggable(state=True,update='loc',use_blit=False)
+            
+            legend.bbox_to_anchor = oldLegPos
 
         # refresh canvas
         self.canvas.draw()

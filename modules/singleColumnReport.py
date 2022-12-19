@@ -13,6 +13,40 @@ import sqlite3
 
 from colors import colors
 
+class DraggableLegend:
+    def __init__(self, legend):
+        self.legend = legend
+        self.gotLegend = False
+        legend.figure.canvas.mpl_connect('motion_notify_event', self.on_motion)
+        legend.figure.canvas.mpl_connect('pick_event', self.on_pick)
+        legend.figure.canvas.mpl_connect('button_release_event', self.on_release)
+        legend.set_picker(self.my_legend_picker)
+
+    def on_motion(self, evt):
+        if self.gotLegend:
+            dx = evt.x - self.mouse_x
+            dy = evt.y - self.mouse_y
+            loc_in_canvas = self.legend_x + dx, self.legend_y + dy
+            loc_in_norm_axes = self.legend.parent.transAxes.inverted().transform_point(loc_in_canvas)
+            self.legend._loc = tuple(loc_in_norm_axes)
+            self.legend.figure.canvas.draw()
+
+    def my_legend_picker(self, legend, evt): 
+        return self.legend.legendPatch.contains(evt)   
+
+    def on_pick(self, evt): 
+        if evt.artist == self.legend:
+            bbox = self.legend.get_window_extent()
+            self.mouse_x = evt.mouseevent.x
+            self.mouse_y = evt.mouseevent.y
+            self.legend_x = bbox.xmin
+            self.legend_y = bbox.ymin 
+            self.gotLegend = 1
+
+    def on_release(self, event):
+        if self.gotLegend:
+            self.gotLegend = False
+
 class radioButtons(QWidget):
 
     def __init__(self):
@@ -93,6 +127,7 @@ class Graph(QDialog):
         # create an axis
         if self.plot_type=='bar':
             self.figure.clear()
+            self.figure.set_tight_layout(tight=True)
             ax = self.figure.add_subplot(111,position=[0, 0, 1, 1])
             ax.format_coord = lambda x, y: ""
             ax.cla()
@@ -102,20 +137,25 @@ class Graph(QDialog):
             ax.bar(labels,self.data,color=thisColors)
             ax.set_ylim(top=max(self.data)+25)
             
-            ax.set_xticks(np.arange(len(self.labels)),labels,rotation=90)
+            ax.set_xticks(np.arange(len(self.labels)),labels,rotation=30)
             xlocs = ax.get_xticks()
             for i, v in enumerate(self.data):
                 ax.text(xlocs[i], v + 0.5, f'{v}%')
         elif self.plot_type=='pie':
             self.figure.clear()
+            self.figure.set_tight_layout(tight=True)
             ax = self.figure.add_subplot(111,position=[0, 0, 1, 1])
             ax.format_coord = lambda x, y: ""
             ax.cla()
             ax.set_title(title)
             # plot data
             patches,_,_= ax.pie(self.data,labels=self.labels,shadow=False, autopct='%1.f%%',startangle=0) # refresh canvas
-            self.figure.legend(patches, self.labels,bbox_to_anchor=(0.8,0.5), loc='right')
-
+            legend = ax.legend(patches, self.labels,bbox_to_anchor=(1.5,0.5), loc='right')
+            oldLegPos = legend.get_bbox_to_anchor()._bbox
+            # print(oldLegPos.bbox)
+            legend.set_draggable(state=True,update='loc',use_blit=False)
+            
+            legend.bbox_to_anchor = oldLegPos
         # refresh canvas
         self.canvas.draw()
 
