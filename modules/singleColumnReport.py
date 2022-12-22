@@ -12,41 +12,7 @@ from typing import *
 import sqlite3
 
 from colors import colors
-
-class DraggableLegend:
-    def __init__(self, legend):
-        self.legend = legend
-        self.gotLegend = False
-        legend.figure.canvas.mpl_connect('motion_notify_event', self.on_motion)
-        legend.figure.canvas.mpl_connect('pick_event', self.on_pick)
-        legend.figure.canvas.mpl_connect('button_release_event', self.on_release)
-        legend.set_picker(self.my_legend_picker)
-
-    def on_motion(self, evt):
-        if self.gotLegend:
-            dx = evt.x - self.mouse_x
-            dy = evt.y - self.mouse_y
-            loc_in_canvas = self.legend_x + dx, self.legend_y + dy
-            loc_in_norm_axes = self.legend.parent.transAxes.inverted().transform_point(loc_in_canvas)
-            self.legend._loc = tuple(loc_in_norm_axes)
-            self.legend.figure.canvas.draw()
-
-    def my_legend_picker(self, legend, evt): 
-        return self.legend.legendPatch.contains(evt)   
-
-    def on_pick(self, evt): 
-        if evt.artist == self.legend:
-            bbox = self.legend.get_window_extent()
-            self.mouse_x = evt.mouseevent.x
-            self.mouse_y = evt.mouseevent.y
-            self.legend_x = bbox.xmin
-            self.legend_y = bbox.ymin 
-            self.gotLegend = 1
-
-    def on_release(self, event):
-        if self.gotLegend:
-            self.gotLegend = False
-
+colors =['#e7f4f3', '#ceeae8', '#aedcd9', '#85cac5', '#5cb9b2','#e6effb', '#cedef7', '#adc9f2', '#84adec', '#5b92e5','#fff4dd', '#ffeabb', '#ffdc8e', '#ffca55', '#ffb81c','#ffe8dd', '#ffd1bc', '#ffb38f', '#ff8d57', '#ff671f','#f8dee0', '#f2bec1', '#e99398', '#ddc064', '#d22630']
 class radioButtons(QWidget):
 
     def __init__(self):
@@ -96,6 +62,10 @@ class Graph(QDialog):
     def create_layout(self,title=''):
         
         # a figure instance to plot on
+        try:
+            del self.figure
+        except:
+            pass
         self.figure = plt.figure()
         self.figure.clear()
         
@@ -119,8 +89,10 @@ class Graph(QDialog):
         thisColors = []
         print('len(colors):',len(colors))
         for i,d in enumerate(self.data):
-            dd = int(round(d*10))
-            if dd>=1000:dd=1000-dd
+            dd = int(round(d/4))
+            if dd == 25: dd=24
+            print(dd)
+            # if dd>=1000:dd=1000-dd
             thisColors.append(colors[dd])
         # clearing old figure
         self.figure.clear()
