@@ -308,7 +308,7 @@ class multipleQuestions(QMainWindow):
     
     def file_save(self):
         try:
-            xlsxName = f'Frequencies-{self.now}.xlsx'
+            xlsxName = f'MultipleQuestions-{self.now}.xlsx'
             xlsxName = os.path.join(self.default_dir, xlsxName)
             name = QFileDialog.getSaveFileName(self, 'Save Report File',xlsxName,"xlsx (*.xlsx)")
             self.df.to_excel(name[0])

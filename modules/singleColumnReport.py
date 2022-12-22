@@ -275,7 +275,7 @@ class percentage_report(QMainWindow):
     
     def file_save(self):
         try:
-            xlsxName = f'Frequencies-{self.now}.xlsx'
+            xlsxName = f'SingleSelection-{self.now}.xlsx'
             xlsxName = os.path.join(self.default_dir, xlsxName)
             name = QFileDialog.getSaveFileName(self, 'Save Report File',xlsxName,"xlsx (*.xlsx)")
             self.df.to_excel(name[0])
@@ -337,8 +337,8 @@ class percentage_report(QMainWindow):
         self._main.update()
         self.showMaximized()
 
-        self.df = pd.DataFrame({'Row Labels':self.labels,'Count':self.y,'Frequencies':["{:.0%}".format(round(np.sum(p))/100) for p in self.percentages]})
-        self.df = pd.concat([self.df, pd.DataFrame.from_records([{'Row Labels':'Grand Total','Count':s,'Frequencies':"{:.0%}".format(int(round(np.sum(self.percentages)))/100)}])])
+        self.df = pd.DataFrame({'Row Labels':self.labels,'Count':self.y,'Percentages':["{:.0%}".format(round(np.sum(p))/100) for p in self.percentages]})
+        self.df = pd.concat([self.df, pd.DataFrame.from_records([{'Row Labels':'Grand Total','Count':s,'Percentages':"{:.0%}".format(int(round(np.sum(self.percentages)))/100)}])])
         self.createTable()
         
     def createTable(self):
