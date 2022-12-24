@@ -2,7 +2,7 @@ import sys,os, platform, datetime, pandas as pd,numpy as np,matplotlib.pyplot as
 from PyQt5.QtWidgets import *
 from PyQt5 import QtCore,QtWidgets
 from PyQt5.QtCore import pyqtSlot,Qt
-from PyQt5.QtGui import QIcon,QFont, QStandardItemModel
+from PyQt5.QtGui import *
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
@@ -53,42 +53,30 @@ class radioButtons(QWidget):
                 button.setChecked(False)
 
 class Graph(QDialog):
-    def __init__(self,labels,data,plot_type='bar', parent=None):
+    def __init__(self, parent=None):
         super(Graph, self).__init__(parent)
-        self.plot_type = plot_type
-        self.labels = labels
-        self.data = data
-
-    def create_layout(self,title=''):
         
-        # a figure instance to plot on
-        try:
-            del self.figure
-        except:
-            pass
+    def create_layout(self):
         self.figure = plt.figure()
         self.figure.clear()
-        
         self.canvas = FigureCanvas(self.figure)
-        self.toolbar = NavigationToolbar(self.canvas,parent=None)
+        self.toolbar = NavigationToolbar(self.canvas,parent=self)
         # creating a Vertical Box layout
-        
         layout = QVBoxLayout()
-        clearLayout(layout=layout)
+        # layout = clearLayout(layout=layout)
         # adding tool bar to the layout
         layout.addWidget(self.toolbar)
         # adding canvas to the layout
         layout.addWidget(self.canvas)
         # setting layout to the main window
         self.figure.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.2, wspace=0.5, hspace=0.5)
-        self.generate_plot(title=title)
+        # self.generate_plot(title=title)
         return layout
 
-
-    def generate_plot(self, title=''):
+    def generate_plot(self,data,labels, plot_type='bar', title=''):
         thisColors = []
         print('len(colors):',len(colors))
-        for i,d in enumerate(self.data):
+        for i,d in enumerate(data):
             dd = int(round(d/4))
             if dd == 25: dd=24
             print(dd)
@@ -97,7 +85,7 @@ class Graph(QDialog):
         # clearing old figure
         self.figure.clear()
         # create an axis
-        if self.plot_type=='bar':
+        if plot_type=='bar':
             self.figure.clear()
             self.figure.set_tight_layout(tight=True)
             ax = self.figure.add_subplot(111,position=[0, 0, 1, 1])
@@ -105,15 +93,15 @@ class Graph(QDialog):
             ax.cla()
             ax.set_title(title)
             # plot data
-            labels = [str(l) for l in self.labels]
-            ax.bar(labels,self.data,color=thisColors)
-            ax.set_ylim(top=max(self.data)+25)
+            labels_ = [str(l) for l in labels]
+            ax.bar(labels_,data,color=thisColors)
+            ax.set_ylim(top=max(data)+25)
             
-            ax.set_xticks(np.arange(len(self.labels)),labels,rotation=30)
+            ax.set_xticks(np.arange(len(labels)),labels_,rotation=30)
             xlocs = ax.get_xticks()
-            for i, v in enumerate(self.data):
+            for i, v in enumerate(data):
                 ax.text(xlocs[i], v + 0.5, f'{v}%')
-        elif self.plot_type=='pie':
+        elif plot_type=='pie':
             self.figure.clear()
             self.figure.set_tight_layout(tight=True)
             ax = self.figure.add_subplot(111,position=[0, 0, 1, 1])
@@ -121,8 +109,8 @@ class Graph(QDialog):
             ax.cla()
             ax.set_title(title)
             # plot data
-            patches,_,_= ax.pie(self.data,labels=self.labels,shadow=False, autopct='%1.f%%',startangle=0) # refresh canvas
-            legend = ax.legend(patches, self.labels,bbox_to_anchor=(1.5,0.5), loc='right')
+            patches,_,_= ax.pie(data,labels=labels,shadow=False, autopct='%1.f%%',startangle=0) # refresh canvas
+            legend = ax.legend(patches, labels,bbox_to_anchor=(1.5,0.5), loc='right')
             oldLegPos = legend.get_bbox_to_anchor()._bbox
             # print(oldLegPos.bbox)
             legend.set_draggable(state=True,update='loc',use_blit=False)
@@ -144,10 +132,11 @@ class MessageBox(QMainWindow):
             print("OK!")
 
 def clearLayout(layout):
-  while layout.count():
-    child = layout.takeAt(0)
-    if child.widget():
-      child.widget().deleteLater()
+    while layout.count():
+        child = layout.takeAt(0)
+        if child.widget():
+            child.widget().deleteLater()
+    return layout
 
 class percentage_report(QMainWindow):
     default_dir:str
@@ -165,31 +154,43 @@ class percentage_report(QMainWindow):
         self.radiob.b1.clicked.connect(self.onChanged)
         self.radiob.b2.clicked.connect(self.onChanged) 
         
-        self.uplyt = QVBoxLayout(self._main)
+        # self.uplyt = QVBoxLayout(self._main)
         self.dnlyt = QVBoxLayout(self._main)
-        self.up = QFrame(self)       
-        self.up.setFrameShape(QFrame.StyledPanel)
-        self.up.setLayout(self.uplyt)
         
-        self.down = QFrame(self)       
+        self.up = QFrame(self._main)       
+        self.up.setFrameShape(QFrame.StyledPanel)
+        # self.up.setLayout(self.uplyt)
+        
+        self.down = QFrame(self._main)       
         self.down.setFrameShape(QFrame.StyledPanel)
         self.down.setLayout(self.dnlyt)
         
+        # self.ttop = QVBoxLayout(self)                   
+        # self.ttop.addWidget(self.radiob)
+        # self.uplyt.addLayout(self.ttop)
+        
+        # self.tbottom = QVBoxLayout(self)
+        # self.uplyt.addLayout(self.tbottom)
+        
         self.layout = QVBoxLayout(self._main)
-        self.layout.addWidget(self.radiob)
-        self.fig = Figure(figsize=(5, 4), dpi=100)
+        # self.layout.addWidget(self.radiob)
+        
+        self.graph = Graph(parent=self)
+        self.graph_layout = self.graph.create_layout()
+        self.up.setLayout(self.graph_layout)
+        # self.fig = Figure(figsize=(5, 4), dpi=100)
 
-        self.static_canvas = FigureCanvas(self.fig)
-        self.uplyt.addWidget(self.static_canvas)
+        # self.static_canvas = FigureCanvas(self.fig)
+        # self.uplyt.addWidget(self.static_canvas)
         
         splitter = QSplitter(QtCore.Qt.Vertical)
+        splitter.setStretchFactor(1, 1)
         splitter.addWidget(self.up)
         splitter.addWidget(self.down)
         splitter.setStretchFactor(1, 1)
-        splitter.setSizes([500, 150])
+        splitter.setSizes([700, 300])
+        self.layout.addWidget(self.radiob)
         self.layout.addWidget(splitter)
-
-        self._static_ax = self.static_canvas.figure.subplots()
 
         self.initialize()
         self.update_recent_reports()
@@ -310,23 +311,23 @@ class percentage_report(QMainWindow):
         self.y = categories[1]
         s = np.sum(self.y)
         self.percentages = [100*y_/s for y_ in self.y]
-        clearLayout(self.uplyt)
-        try:
-            del self.graph
-        except:
-            pass
+        # self.uplyt= clearLayout(self.uplyt)
+
         percentages = [int(round(p)) for p in self.percentages]
         if not (self.radiob.b1.isChecked() or self.radiob.b2.isChecked()):
             self.radiob.b1.setChecked(True)
         title = f'Frequency Analysis: {text}'
         if self.radiob.b1.isChecked():            
-            self.graph = Graph(labels=self.labels,data=percentages,plot_type='bar' )
-            graph_layout = self.graph.create_layout(title=title)
-            self.uplyt.addLayout(graph_layout)
+            self.graph.generate_plot(data=percentages,labels=self.labels,plot_type='bar', title=title)
+            # self.graph = Graph(labels=self.labels,data=percentages,plot_type='bar' )
+            # graph_layout = self.graph.create_layout(title=title)
+            # self.uplyt.addLayout(graph_layout)
+            
         elif self.radiob.b2.isChecked():
-            self.graph = Graph(labels=self.labels,data=percentages,plot_type='pie' )
-            graph_layout = self.graph.create_layout(title=title)
-            self.uplyt.addLayout(graph_layout)
+            self.graph.generate_plot(data=percentages,labels=self.labels,plot_type='pie', title=title)
+            # self.graph = Graph(labels=self.labels,data=percentages,plot_type='pie' )
+            # graph_layout = self.graph.create_layout(title=title)
+            # self.uplyt.addLayout(graph_layout)
         
         # self._static_ax.cla()
         # now = datetime.datetime.now()

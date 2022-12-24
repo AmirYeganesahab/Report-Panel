@@ -104,7 +104,6 @@ class Graph(QDialog):
             xlocs = ax.get_xticks()
             for i, v in enumerate(data):
                 ax.text(xlocs[i], v + 0.5, f'{v}%')
-                print(xlocs[i],v + 0.5)
         elif plot_type=='pie':
             self.figure.clear()
             self.figure.set_tight_layout(tight=True)

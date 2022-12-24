@@ -58,74 +58,62 @@ class radioButtons(QWidget):
                 button.setChecked(False)
 
 class Graph(QDialog):
-    def __init__(self,labels,data,plot_type='bar', parent=None):
+    def __init__(self, parent=None):
         super(Graph, self).__init__(parent)
-        self.plot_type = plot_type
-        self.labels = labels
-        self.data = data
-
-    def create_layout(self, title=''):
         
+    def create_layout(self):
         # a figure instance to plot on
         self.figure = plt.figure()
         self.figure.clear()
-        
         self.canvas = FigureCanvas(self.figure)
         self.toolbar = NavigationToolbar(self.canvas,parent=None)
         # creating a Vertical Box layout
-        
         layout = QVBoxLayout()
-        clearLayout(layout=layout)
         # adding tool bar to the layout
         layout.addWidget(self.toolbar)
         # adding canvas to the layout
         layout.addWidget(self.canvas)
         # setting layout to the main window
         self.figure.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.2, wspace=0.5, hspace=0.5)
-        self.generate_plot(title)
-
         return layout
   
-    def generate_plot(self, title):
+    def generate_plot(self, labels,data,plot_type='bar',title=''):
         thisColors = []
-        for i,d in enumerate(self.data):
+        for i,d in enumerate(data):
             dd = int(round(d/4))
             if dd==25: dd=24
             thisColors.append(colors[dd])
         # clearing old figure
         self.figure.clear()
         # create an axis
-        
-        if self.plot_type=='bar':
+        if plot_type=='bar':
             self.figure.clear()
             self.figure.set_tight_layout(tight=True)
-            self.ax = self.figure.add_subplot(111,position=[0, 0, 1, 1])
-            self.ax.format_coord = lambda x, y: ""
-            self.ax.cla()
-            self.ax.set_title(title)
+            ax = self.figure.add_subplot(111,position=[0, 0, 1, 1])
+            ax.format_coord = lambda x, y: ""
+            ax.cla()
+            ax.set_title(title)
             # plot data
-            self.ax.bar(self.labels,self.data,color=thisColors)
-            self.ax.set_ylim(top=max(self.data)+25)
-            self.ax.set_xticks(np.arange(len(self.labels)),self.labels,rotation=30)
-            xlocs = self.ax.get_xticks()
-            for i, v in enumerate(self.data):
-                self.ax.text(xlocs[i], v + 0.5, f'{v}%')
-        elif self.plot_type=='pie':
+            ax.bar(labels,data,color=thisColors)
+            ax.set_ylim(top=max(data)+25)
+            ax.set_xticks(np.arange(len(labels)),labels,rotation=30)
+            xlocs = ax.get_xticks()
+            for i, v in enumerate(data):
+                ax.text(xlocs[i], v + 0.5, f'{v}%')
+        elif plot_type=='pie':
             self.figure.clear()
             self.figure.set_tight_layout(tight=True)
-            self.ax = self.figure.add_subplot(111,position=[0, 0, 1, 1])
-            self.ax.format_coord = lambda x, y: ""
-            self.ax.cla()
-            self.ax.set_title(title)
+            ax = self.figure.add_subplot(111,position=[0, 0, 1, 1])
+            ax.format_coord = lambda x, y: ""
+            ax.cla()
+            ax.set_title(title)
             # plot data
-            patches,_,_= self.ax.pie(self.data,labels=self.labels,shadow=False, autopct='%1.f%%',startangle=0) # refresh canvas
-            legend = self.ax.legend(patches, self.labels,bbox_to_anchor=(1.5,0.5), loc='right')
+            patches,_,_= ax.pie(data,labels=labels,shadow=False, autopct='%1.f%%',startangle=0) # refresh canvas
+            legend = ax.legend(patches, labels,bbox_to_anchor=(1.5,0.5), loc='right')
             oldLegPos = legend.get_bbox_to_anchor()._bbox
             # print(oldLegPos.bbox)
             legend.set_draggable(state=True,update='loc',use_blit=False)
-            
             legend.bbox_to_anchor = oldLegPos
-
         # refresh canvas
         self.canvas.draw()
 
@@ -164,11 +152,15 @@ class multipleQuestions(QMainWindow):
         self.radiob.b1.clicked.connect(self.onChanged)
         self.radiob.b2.clicked.connect(self.onChanged)
 
-        self.uplyt = QVBoxLayout()
+        # self.uplyt = QVBoxLayout()
         self.dnlyt = QVBoxLayout()
         self.up = QFrame(self)       
         self.up.setFrameShape(QFrame.StyledPanel)
-        self.up.setLayout(self.uplyt)
+        # self.up.setLayout(self.uplyt)
+        self.graph = Graph(parent=self)
+        self.graph_layout = self.graph.create_layout()
+        self.up.setLayout(self.graph_layout)
+        
         
         self.down = QFrame(self)       
         self.down.setFrameShape(QFrame.StyledPanel)
@@ -344,22 +336,18 @@ class multipleQuestions(QMainWindow):
         
         self.update_recent_reports()
         self.populateRecent()
-        clearLayout(self.uplyt)
-        try:
-            del self.graph
-        except:
-            pass
+
         if (not self.radiob.b1.isChecked()) and (not self.radiob.b2.isChecked()):
             self.radiob.b2.setChecked(True)
         title = f'Multiple Selection: {text}'  
-        if self.radiob.b1.isChecked():            
-            self.graph = Graph(labels=self.summary[text].keys(),data=self.percentage1,plot_type='bar' )
-            graph_layout = self.graph.create_layout(title)
-            self.uplyt.addLayout(graph_layout)
+        if self.radiob.b1.isChecked():   
+            self.graph.generate_plot(labels=self.summary[text].keys(),data=self.percentage1,plot_type='bar',title=title )
+            # self.uplyt.addLayout(graph_layout)
         elif self.radiob.b2.isChecked():
-            self.graph = Graph(labels=self.summary[text].keys(),data=self.percentage1,plot_type='pie' )
-            graph_layout = self.graph.create_layout(title)
-            self.uplyt.addLayout(graph_layout)
+            # self.graph = Graph(labels=self.summary[text].keys(),data=self.percentage1,plot_type='pie' )
+            self.graph.generate_plot(labels=self.summary[text].keys(),data=self.percentage1,plot_type='pie',title=title )
+            # graph_layout = self.graph.create_layout(title)
+            # self.uplyt.addLayout(graph_layout)
         
 
         self._main.update()

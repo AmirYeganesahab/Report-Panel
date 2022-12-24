@@ -58,13 +58,10 @@ class radioButtons(QWidget):
                 button.setChecked(False)
 
 class Graph(QDialog):
-    def __init__(self,labels,data,plot_type='bar', parent=None):
+    def __init__(self,parent=None):
         super(Graph, self).__init__(parent)
-        self.plot_type = plot_type
-        self.labels = labels
-        self.data = data
 
-    def create_layout(self, title=''):
+    def create_layout(self):
         
         # a figure instance to plot on
         self.figure = plt.figure()
@@ -75,51 +72,48 @@ class Graph(QDialog):
         # creating a Vertical Box layout
         
         layout = QVBoxLayout()
-        clearLayout(layout=layout)
         # adding tool bar to the layout
         layout.addWidget(self.toolbar)
         # adding canvas to the layout
         layout.addWidget(self.canvas)
         # setting layout to the main window
         self.figure.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.2, wspace=0.5, hspace=0.5)
-        self.generate_plot(title)
-
         return layout
   
-    def generate_plot(self,title):
+    def generate_plot(self,labels,data,plot_type='bar', title=''):
         thisColors = []
-        for i,d in enumerate(self.data):
+        for i,d in enumerate(data):
             dd = int(round(d/4))
             if dd==25: dd=24
             thisColors.append(colors[dd])
         # clearing old figure
         self.figure.clear()
         # create an axis
-        labels = [str(l) for l in self.labels]
-        if self.plot_type=='bar':
+        labels_ = [str(l) for l in labels]
+        if plot_type=='bar':
             self.figure.clear()
             self.figure.set_tight_layout(tight=True)
-            self.ax = self.figure.add_subplot(111,position=[0, 0, 1, 1])
-            self.ax.format_coord = lambda x, y: ""
-            self.ax.cla()
+            ax = self.figure.add_subplot(111,position=[0, 0, 1, 1])
+            ax.format_coord = lambda x, y: ""
+            ax.cla()
             # plot data
-            self.ax.set_title(title)
-            self.ax.bar(labels,self.data,color=thisColors)
-            self.ax.set_ylim(top=max(self.data)+25)
-            self.ax.set_xticks(np.arange(len(labels)),labels,rotation=30)
-            xlocs = self.ax.get_xticks()
-            for i, v in enumerate(self.data):
-                self.ax.text(xlocs[i], v + 0.5, f'{v}%')
-        elif self.plot_type=='pie':
+            ax.set_title(title)
+            ax.bar(labels_,data,color=thisColors)
+            ax.set_ylim(top=max(data)+25)
+            ax.set_xticks(np.arange(len(labels_)),labels_,rotation=30)
+            xlocs = ax.get_xticks()
+            for i, v in enumerate(data):
+                ax.text(xlocs[i], v + 0.5, f'{v}%')
+        elif plot_type=='pie':
             self.figure.clear()
             self.figure.set_tight_layout(tight=True)
-            self.ax = self.figure.add_subplot(111,position=[0, 0, 1, 1])
-            self.ax.format_coord = lambda x, y: ""
-            self.ax.cla()
-            self.ax.set_title(title)
+            ax = self.figure.add_subplot(111,position=[0, 0, 1, 1])
+            ax.format_coord = lambda x, y: ""
+            ax.cla()
+            ax.set_title(title)
             # plot data
-            patches,_,_= self.ax.pie(self.data,labels=labels,shadow=False, autopct='%1.f%%',startangle=0) # refresh canvas
-            legend =self.ax.legend(patches, labels,bbox_to_anchor=(1.5,0.5), loc='right')
+            patches,_,_= ax.pie(data,labels=labels_,shadow=False, autopct='%1.f%%',startangle=0) # refresh canvas
+            legend = ax.legend(patches, labels_,bbox_to_anchor=(1.5,0.5), loc='right')
             oldLegPos = legend.get_bbox_to_anchor()._bbox
             # print(oldLegPos.bbox)
             legend.set_draggable(state=True,update='loc',use_blit=False)
@@ -198,11 +192,11 @@ class dual_percentage_report(QMainWindow):
         self.data = data
         self._main = QWidget()
         self.setCentralWidget(self._main)
-        self.uplyt = QVBoxLayout(self._main)
+        # self.uplyt = QVBoxLayout(self._main)
         self.dnlyt = QVBoxLayout(self._main)
         self.up = QFrame(self)       
         self.up.setFrameShape(QFrame.StyledPanel)
-        self.up.setLayout(self.uplyt)
+        # self.up.setLayout(self.uplyt)
         self.down = QFrame(self)       
         self.down.setFrameShape(QFrame.StyledPanel)
         self.down.setLayout(self.dnlyt)
@@ -215,9 +209,12 @@ class dual_percentage_report(QMainWindow):
         
         self.hlayout = QHBoxLayout(self._main)
         
-        self.fig = Figure(figsize=(8, 8), dpi=100)
-        self.static_canvas = FigureCanvas(self.fig)
-        self._static_ax = self.static_canvas.figure.subplots()
+        self.graph = Graph(parent=self)
+        self.graph_layout = self.graph.create_layout()
+        self.up.setLayout(self.graph_layout)
+        # self.fig = Figure(figsize=(8, 8), dpi=100)
+        # self.static_canvas = FigureCanvas(self.fig)
+        # self._static_ax = self.static_canvas.figure.subplots()
 
     def constructSplitter(self):
         splitter = QSplitter(QtCore.Qt.Vertical)
@@ -228,7 +225,7 @@ class dual_percentage_report(QMainWindow):
         self.vlayout.addWidget(splitter)
 
     def fillLayouts(self):
-        self.uplyt.addWidget(self.static_canvas)
+        # self.uplyt.addWidget(self.static_canvas)
         self.setWindowTitle('Cross Check Analysis')
         self.setWindowIcon(QIcon('web-1.png'))
         self.showMaximized()
@@ -550,29 +547,16 @@ class dual_percentage_report(QMainWindow):
         percentages = [int(round(p)) for p in percentages]
         if (not self.radiob.b1.isChecked()) and (not self.radiob.b2.isChecked()):
             self.radiob.b2.setChecked(True)
-        clearLayout(self.uplyt)
+        # clearLayout(self.uplyt)
         
-        if self.radiob.b1.isChecked():            
-            self.graph = Graph(labels=labels,data=percentages,plot_type='bar' )
-            graph_layout = self.graph.create_layout(title=title)
-            self.uplyt.addLayout(graph_layout)
+        if self.radiob.b1.isChecked():     
+            self.graph.generate_plot(data=percentages,labels=labels,plot_type='bar', title=title)       
+            # self.graph = Graph(labels=labels,data=percentages,plot_type='bar' )
+            # graph_layout = self.graph.create_layout(title=title)
+            # self.uplyt.addLayout(graph_layout)
         elif self.radiob.b2.isChecked():
-            self.graph = Graph(labels=labels,data=percentages,plot_type='pie' )
-            graph_layout = self.graph.create_layout(title=title)
-            self.uplyt.addLayout(graph_layout)
-        # try:
-        #     self._static_ax.cla()
-        #     now = datetime.datetime.now()
-        #     self.now = now.strftime("%m-%d-%YT%H-%M-%S")
-        #     self._static_ax.pie(percentages,labels=labels,shadow=False, autopct='%1.f%%',startangle=90)
-        #     self._static_ax.set_title( f'Cross Check From {text} WHERE {self.first_column_text} IS {self.combo2.checkedItems}')
-        #     self.static_canvas.draw()
-        #     self._main.update()
-        #     # self.showMaximized()
-        #     self.vlayout.update()
-        # except:
-        #     pass
-        
+            self.graph.generate_plot(data=percentages,labels=labels,plot_type='pie', title=title)       
+    
     def get_query_entity_from_combo23(self,text=None):
         '''
         fills entities in combo3 usin the selected item in combo2
