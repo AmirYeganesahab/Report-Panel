@@ -64,6 +64,8 @@ class APP(QMainWindow):
     def update_recent(self):
         self.populateOpenRecent()
         f:_io.TextIOWrapper = open(self.recent_file_path,'w')
+        self.fileNames = np.unique(self.fileNames)
+        if len(self.fileNames)>15:self.fileNames[-15:]
         f.write(str(self.fileNames))
 
     def read_recent(self):
@@ -74,6 +76,8 @@ class APP(QMainWindow):
             try:
                 #print(f.readline())
                 self.fileNames = eval(f.readline())
+                self.fileNames = np.unique(self.fileNames)
+                if len(self.fileNames)>15:self.fileNames[-15:]
                 print('recent files are read ...')
             except Exception as e:
                 print(e)
