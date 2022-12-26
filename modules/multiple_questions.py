@@ -306,7 +306,7 @@ class multipleQuestions(QMainWindow):
             self.df.to_excel(name[0])
             # print('_________________',name[0])
             png_path = name[0][:-5]+'.png'
-            self.graph.ax.figure.savefig(png_path)
+            self.graph.figure.savefig(png_path)
             MessageBox(title='File Saved', message=f'table and pie chart saved at {os.path.join(*png_path.split("/")[:-1])}')
         except Exception as e:
             print(e)

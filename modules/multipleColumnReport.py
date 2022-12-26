@@ -314,7 +314,7 @@ class dual_percentage_report(QMainWindow):
             # print('______________', name[0])
             pngName = name[0][:-5]+'.png'
 
-            self.graph.ax.figure.savefig(pngName)
+            self.graph.figure.savefig(pngName)
             MessageBox(title='File Saved', message=f'table and pie chart saved at {os.path.join(*pngName.split("/")[:-1])}')
         except Exception as e:
             print(e)

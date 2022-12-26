@@ -237,13 +237,19 @@ class ComparisonWindow(QWidget):
             xlsxName = f'Cross_check-{self.now}'
             xlsxName = os.path.join(self.default_dir, xlsxName)
             name = QFileDialog.getSaveFileName(self, 'Save Report File',xlsxName,"xlsx (*.xlsx)")
-            self.df_left.to_excel(name[0]+'_left.xlsx')
-            self.df_right.to_excel(name[0]+'_right.xlsx')
-            # print('______________', name[0])
-            pngName_left = name[0][:-5]+'_left.png'
-            pngName_right = name[0][:-5]+'_right.png'
-            self.left_pannel.graph.ax.figure.savefig(pngName_left)
-            self.right_pannel.graph.ax.figure.savefig(pngName_right)
+            try:
+                self.df_left.to_excel(name[0]+'_left.xlsx')
+                pngName_left = name[0][:-5]+'_left.png'
+                self.left_pannel.graph.figure.savefig(pngName_left)
+            except:
+                pass
+            try:
+                self.df_right.to_excel(name[0]+'_right.xlsx')
+                pngName_right = name[0][:-5]+'_right.png'
+                self.right_pannel.graph.figure.savefig(pngName_right)
+            except:
+                pass
+            
             MessageBox(title='File Saved', message=f'table and pie chart saved at {os.path.join(*pngName_left.split("/")[:-1])}')
         except Exception as e:
             print(e)
