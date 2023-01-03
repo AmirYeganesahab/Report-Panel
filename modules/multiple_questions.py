@@ -10,7 +10,7 @@ from functools import partial
 import _io
 from typing import *
 import sqlite3
-from colors import colors
+# from colors import colors
 colors =['#e7f4f3', '#ceeae8', '#aedcd9', '#85cac5', '#5cb9b2','#e6effb', '#cedef7', '#adc9f2', '#84adec', '#5b92e5','#fff4dd', '#ffeabb', '#ffdc8e', '#ffca55', '#ffb81c','#ffe8dd', '#ffd1bc', '#ffb38f', '#ff8d57', '#ff671f','#f8dee0', '#f2bec1', '#e99398', '#ddc064', '#d22630']
 
 
@@ -273,7 +273,7 @@ class multipleQuestions(QMainWindow):
         self.populateRecent()
         f = open(self.recent_reports_path,'w')
         self.action_history=np.unique(self.action_history)
-        if len(self.action_history>15):self.action_history=self.action_history[-15:]
+        if len(self.action_history)>15:self.action_history=self.action_history[-15:]
         f.write(str(self.action_history))
         f.close()
 
@@ -284,7 +284,7 @@ class multipleQuestions(QMainWindow):
             try:
                 self.action_history = eval(f.readline())
                 self.action_history=np.unique(self.action_history)
-                if len(self.action_history>15):self.action_history=self.action_history[-15:]
+                if len(self.action_history)>15:self.action_history=self.action_history[-15:]
                 
             except Exception as e:
                 print(e)

@@ -247,7 +247,7 @@ class percentage_report(QMainWindow):
         self.populateRecent()
         f = open(self.recent_reports_path,'w')
         self.action_history=np.unique(self.action_history)
-        if len(self.action_history>15):self.action_history=self.action_history[-15:]
+        if len(self.action_history)>15:self.action_history=self.action_history[-15:]
         f.write(str(self.action_history))
         f.close()
 
@@ -259,7 +259,7 @@ class percentage_report(QMainWindow):
                 #print(f.readline())
                 self.action_history = eval(f.readline())
                 self.action_history=np.unique(self.action_history)
-                if len(self.action_history>15):self.action_history=self.action_history[-15:]
+                if len(self.action_history)>15:self.action_history=self.action_history[-15:]
                 # print('recent_reports: ',self.action_history)
             except Exception as e:
                 print(e)
