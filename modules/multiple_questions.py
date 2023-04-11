@@ -95,7 +95,17 @@ class Graph(QDialog):
             # plot data
             ax.bar(labels,data,color=thisColors)
             ax.set_ylim(top=max(data)+25)
-            ax.set_xticks(np.arange(len(labels)),labels,rotation=30)
+            # We want to show all ticks...
+            ax.set_xticks(np.arange(len(labels)))
+            # ... and label them with the respective list entries
+            ax.set_xticklabels(labels)
+            # Rotate the tick labels and set their alignment.
+            plt.setp(ax.get_xticklabels(), rotation=30, ha="right",
+                     rotation_mode="anchor")
+            #ax.set_xticks(np.arange(len(labels)), labels, rotation=30)
+            #xlocs = ax.get_xticks()
+            #xloc = ax.get_xticklabels()
+            #ax.set_xticks(np.arange(len(labels)),labels,rotation=30)
             xlocs = ax.get_xticks()
             for i, v in enumerate(data):
                 ax.text(xlocs[i], v + 0.5, f'{v}%')

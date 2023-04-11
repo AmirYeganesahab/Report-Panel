@@ -1,8 +1,15 @@
-import sys,os, platform, datetime, pandas as pd,numpy as np,matplotlib.pyplot as plt, warnings
+import sys
+import os
+import platform
+import datetime
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import warnings
 from PyQt5.QtWidgets import *
-from PyQt5 import QtCore,QtWidgets
+from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtCore import *
-from PyQt5.QtGui import QIcon,QFont, QStandardItemModel
+from PyQt5.QtGui import QIcon, QFont, QStandardItemModel
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 from matplotlib.figure import Figure
@@ -11,7 +18,8 @@ import _io
 from typing import *
 import sqlite3
 # from colors import colors
-colors =['#e7f4f3', '#ceeae8', '#aedcd9', '#85cac5', '#5cb9b2','#e6effb', '#cedef7', '#adc9f2', '#84adec', '#5b92e5','#fff4dd', '#ffeabb', '#ffdc8e', '#ffca55', '#ffb81c','#ffe8dd', '#ffd1bc', '#ffb38f', '#ff8d57', '#ff671f','#f8dee0', '#f2bec1', '#e99398', '#ddc064', '#d22630']
+colors = ['#e7f4f3', '#ceeae8', '#aedcd9', '#85cac5', '#5cb9b2', '#e6effb', '#cedef7', '#adc9f2', '#84adec', '#5b92e5', '#fff4dd', '#ffeabb',
+          '#ffdc8e', '#ffca55', '#ffb81c', '#ffe8dd', '#ffd1bc', '#ffb38f', '#ff8d57', '#ff671f', '#f8dee0', '#f2bec1', '#e99398', '#ddc064', '#d22630']
 
 
 class radioButtons(QWidget):
@@ -46,90 +54,105 @@ class radioButtons(QWidget):
     def b1Clicked(self):
         self.b2.setChecked(False)
         self.b1.setChecked(True)
+
     def b2Clicked(self):
         self.b1.setChecked(False)
         self.b2.setChecked(True)
-        
+
     def check_buttons(self, radioButton):
         # Uncheck every other button in this group
-        
+
         for button in self.group.buttons():
             if button is not radioButton:
                 button.setChecked(False)
 
+
 class Graph(QDialog):
-    def __init__(self,parent=None):
+    def __init__(self, parent=None):
         super(Graph, self).__init__(parent)
 
     def create_layout(self):
-        
+
         # a figure instance to plot on
         self.figure = plt.figure()
         self.figure.clear()
-        
+
         self.canvas = FigureCanvas(self.figure)
-        self.toolbar = NavigationToolbar(self.canvas,parent=None)
+        self.toolbar = NavigationToolbar(self.canvas, parent=None)
         # creating a Vertical Box layout
-        
+
         layout = QVBoxLayout()
         # adding tool bar to the layout
         layout.addWidget(self.toolbar)
         # adding canvas to the layout
         layout.addWidget(self.canvas)
         # setting layout to the main window
-        self.figure.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.2, wspace=0.5, hspace=0.5)
+        self.figure.subplots_adjust(
+            left=0.1, right=0.9, top=0.9, bottom=0.2, wspace=0.5, hspace=0.5)
         return layout
-  
-    def generate_plot(self,labels,data,plot_type='bar', title=''):
+
+    def generate_plot(self, labels, data, plot_type='bar', title=''):
         thisColors = []
-        for i,d in enumerate(data):
+        for i, d in enumerate(data):
             dd = int(round(d/4))
-            if dd==25: dd=24
+            if dd == 25:
+                dd = 24
             thisColors.append(colors[dd])
         # clearing old figure
         self.figure.clear()
         # create an axis
         labels_ = [str(l) for l in labels]
-        if plot_type=='bar':
+        if plot_type == 'bar':
             self.figure.clear()
             self.figure.set_tight_layout(tight=True)
-            ax = self.figure.add_subplot(111,position=[0, 0, 1, 1])
+            ax = self.figure.add_subplot(111, position=[0, 0, 1, 1])
             ax.format_coord = lambda x, y: ""
             ax.cla()
             # plot data
             ax.set_title(title)
-            ax.bar(labels_,data,color=thisColors)
+            ax.bar(labels_, data, color=thisColors)
             ax.set_ylim(top=max(data)+25)
-            ax.set_xticks(np.arange(len(labels_)),labels_,rotation=30)
+            # We want to show all ticks...
+            ax.set_xticks(np.arange(len(labels_)))
+            # ... and label them with the respective list entries
+            ax.set_xticklabels(labels_)
+            # Rotate the tick labels and set their alignment.
+            plt.setp(ax.get_xticklabels(), rotation=30, ha="right",
+                     rotation_mode="anchor")
+            #ax.set_xticks(np.arange(len(labels_)), labels_, rotation=30)
             xlocs = ax.get_xticks()
             for i, v in enumerate(data):
                 ax.text(xlocs[i], v + 0.5, f'{v}%')
-        elif plot_type=='pie':
+        elif plot_type == 'pie':
             self.figure.clear()
             self.figure.set_tight_layout(tight=True)
-            ax = self.figure.add_subplot(111,position=[0, 0, 1, 1])
+            ax = self.figure.add_subplot(111, position=[0, 0, 1, 1])
             ax.format_coord = lambda x, y: ""
             ax.cla()
             ax.set_title(title)
             # plot data
-            patches,_,_= ax.pie(data,labels=labels_,shadow=False, autopct='%1.f%%',startangle=0) # refresh canvas
-            legend = ax.legend(patches, labels_,bbox_to_anchor=(1.5,0.5), loc='right')
+            patches, _, _ = ax.pie(
+                data, labels=labels_, shadow=False, autopct='%1.f%%', startangle=0)  # refresh canvas
+            legend = ax.legend(
+                patches, labels_, bbox_to_anchor=(1.5, 0.5), loc='right')
             oldLegPos = legend.get_bbox_to_anchor()._bbox
             # print(oldLegPos.bbox)
-            legend.set_draggable(state=True,update='loc',use_blit=False)
-            
+            legend.set_draggable(state=True, update='loc', use_blit=False)
+
             legend.bbox_to_anchor = oldLegPos
         # refresh canvas
         self.canvas.draw()
 
+
 def clearLayout(layout):
-  while layout.count():
-    child = layout.takeAt(0)
-    if child.widget():
-      child.widget().deleteLater()
+    while layout.count():
+        child = layout.takeAt(0)
+        if child.widget():
+            child.widget().deleteLater()
+
 
 class MessageBox(QMainWindow):
-    def __init__(self,title,message):
+    def __init__(self, title, message):
         super().__init__()
 
         dlg = QMessageBox(self)
@@ -140,12 +163,13 @@ class MessageBox(QMainWindow):
         if button == QMessageBox.Ok:
             print("OK!")
 
+
 class CheckableComboBox(QComboBox):
-    def __init__(self, parent = None):
+    def __init__(self, parent=None):
         super(CheckableComboBox, self).__init__()
         self.view().pressed.connect(self.handle_item_pressed)
         self.setModel(QStandardItemModel(self))
-        
+
     # when any item get pressed
     def handle_item_pressed(self, index):
         # getting which item is pressed
@@ -158,14 +182,16 @@ class CheckableComboBox(QComboBox):
         # calling method
         self.check_items()
     # method called by check_items
+
     def item_checked(self, index):
         # getting item at index
         item = self.model().item(index, 0)
         # return true if checked else false
         return item.checkState() == Qt.Checked
     # calling method
+
     def check_items(self):
-        
+
         # blank list
         self.checkedItems = []
         # traversing the items
@@ -174,41 +200,42 @@ class CheckableComboBox(QComboBox):
             if self.item_checked(i):
                 self.checkedItems.append(i)
         self.checkedItems = list(np.unique(self.checkedItems))
-            
+
     # flush
     sys.stdout.flush()
-    
+
+
 class dual_percentage_report(QMainWindow):
-    def __init__(self,data, parent=None):
+    def __init__(self, data, parent=None):
         super(dual_percentage_report, self).__init__(parent)
         self.constructFrame(data=data)
         self.constructSplitter()
         self.fillLayouts()
         self.constructMenues()
         self.initialize()
-    
-    def constructFrame(self,data):
-        self.default_dir =os.getcwd()
+
+    def constructFrame(self, data):
+        self.default_dir = os.getcwd()
         self.data = data
         self._main = QWidget()
         self.setCentralWidget(self._main)
         # self.uplyt = QVBoxLayout(self._main)
         self.dnlyt = QVBoxLayout(self._main)
-        self.up = QFrame(self)       
+        self.up = QFrame(self)
         self.up.setFrameShape(QFrame.StyledPanel)
         # self.up.setLayout(self.uplyt)
-        self.down = QFrame(self)       
+        self.down = QFrame(self)
         self.down.setFrameShape(QFrame.StyledPanel)
         self.down.setLayout(self.dnlyt)
         self.radiob = radioButtons()
         self.radiob.b1.clicked.connect(self.onChanged)
         self.radiob.b2.clicked.connect(self.onChanged)
-        
+
         self.vlayout = QVBoxLayout(self._main)
         self.vlayout.addWidget(self.radiob)
-        
+
         self.hlayout = QHBoxLayout(self._main)
-        
+
         self.graph = Graph(parent=self)
         self.graph_layout = self.graph.create_layout()
         self.up.setLayout(self.graph_layout)
@@ -240,7 +267,7 @@ class dual_percentage_report(QMainWindow):
         save_file_action.setShortcut('Ctrl+S')
         save_file_action.setStatusTip("Save current page")
         save_file_action.triggered.connect(self.file_save)
-        exitAction = QAction(QIcon('exit.png'), '&Exit', self)        
+        exitAction = QAction(QIcon('exit.png'), '&Exit', self)
         exitAction.setShortcut('Ctrl+Q')
         exitAction.setStatusTip('Exit application')
         exitAction.triggered.connect(self.close)
@@ -250,10 +277,10 @@ class dual_percentage_report(QMainWindow):
         file_menu.addAction(save_file_action)
         file_menu.addAction(exitAction)
 
-    def pair(self,func,text,multiselect=False,set_cols=False):
+    def pair(self, func, text, multiselect=False, set_cols=False):
         # =================================
         label = QLabel(self)
-        label.move(0,0)
+        label.move(0, 0)
         label.setText(text)
         label.adjustSize()
         if multiselect:
@@ -261,22 +288,25 @@ class dual_percentage_report(QMainWindow):
         else:
             combo = QComboBox(self)
         combo.move(0, 0)
-        if func!=None:
+        if func != None:
             combo.activated[str].connect(func)
         if set_cols:
             # cols = [d.split(os.sep)[-1] for d in self.data.columns]
-            cols = [f'{i}. {d}' for i,d in enumerate(self.data.columns)]
+            cols = [f'{i}. {d}' for i, d in enumerate(self.data.columns)]
             combo.setMaximumWidth(450)
             # combo.addItems(cols)
             combo.setModel(QStringListModel(cols))
-        
-        return label,combo
 
-    def onChanged(self,text):
-        
+        return label, combo
+
+    def onChanged(self, text):
+        try:
+            self.labels
+        except:
+            return
         self.create_chart(labels=self.labels,
-                                percentages=self.percentages,
-                                title=self.title)
+                          percentages=self.percentages,
+                          title=self.title)
 
     def createTable(self):
         now = datetime.datetime.now()
@@ -287,62 +317,64 @@ class dual_percentage_report(QMainWindow):
             self.reporttableWidget.setRowCount(nrows)
             self.reporttableWidget.setColumnCount(ncols)
             self.reporttableWidget.setHorizontalHeaderLabels(self.df.columns)
-            
-            for i,col in enumerate(self.df.columns):
-                for j,d in enumerate(self.df[col]):
-                    if type(d)==pd._libs.tslibs.timestamps.Timestamp:
-                        d = pd.Timestamp.strftime(d,'%Y-%m-%d %X')
+
+            for i, col in enumerate(self.df.columns):
+                for j, d in enumerate(self.df[col]):
+                    if type(d) == pd._libs.tslibs.timestamps.Timestamp:
+                        d = pd.Timestamp.strftime(d, '%Y-%m-%d %X')
                     try:
-                        self.reporttableWidget.setItem(j,i, QTableWidgetItem(str(d)))
+                        self.reporttableWidget.setItem(
+                            j, i, QTableWidgetItem(str(d)))
                     except Exception as e:
                         print('____________________')
                         print(e)
                         # print(type(d))
                         print('____________________')
-                
-            self.reporttableWidget.move(0,0)
+
+            self.reporttableWidget.move(0, 0)
             print('table created')
         except:
             pass
-    
+
     def file_save(self):
         try:
             xlsxName = f'Cross_check-{self.now}.xlsx'
             xlsxName = os.path.join(self.default_dir, xlsxName)
-            name = QFileDialog.getSaveFileName(self, 'Save Report File',xlsxName,"xlsx (*.xlsx)")
+            name = QFileDialog.getSaveFileName(
+                self, 'Save Report File', xlsxName, "xlsx (*.xlsx)")
             self.df.to_excel(name[0])
             # print('______________', name[0])
             pngName = name[0][:-5]+'.png'
 
             self.graph.figure.savefig(pngName)
-            MessageBox(title='File Saved', message=f'table and pie chart saved at {os.path.join(*pngName.split("/")[:-1])}')
+            MessageBox(
+                title='File Saved', message=f'table and pie chart saved at {os.path.join(*pngName.split("/")[:-1])}')
         except Exception as e:
             print(e)
 
     def initialize(self):
         self.ischecked = False
-        
-        
+
         # =================================
         self.label1, self.combo1 = self.pair(func=self.populate_combo2,
                                              text='Select First Column »',
-                                             set_cols=True,multiselect=False) 
+                                             set_cols=True, multiselect=False)
         self.combo1.setCurrentIndex(-1)
         self.label2, self.combo2 = self.pair(func=self.get_query_entity_from_combo23,
                                              text='First Query Entity »',
-                                             set_cols=False,multiselect=True) 
+                                             set_cols=False, multiselect=True)
         self.combo2.setCurrentIndex(-1)
-        self.label3, self.combo3 = self.pair(func=self.populate_combo4,text='Select Second Column »',
+        self.label3, self.combo3 = self.pair(func=self.populate_combo4, text='Select Second Column »',
                                              set_cols=True,
                                              multiselect=False)
         self.combo3.setCurrentIndex(-1)
         # =================================
         self.box = QCheckBox("Double Cross Check is required!")
         self.box.toggled.connect(self.checkbox_clicked)
-        
+
         self.hlayout.addWidget(self.label1)
         self.hlayout.addWidget(self.combo1)
-        
+
         self.hlayout.addWidget(self.label2)
         self.hlayout.addWidget(self.combo2)
 
@@ -358,16 +390,16 @@ class dual_percentage_report(QMainWindow):
         self.ischecked = cbutton.isChecked()
         # print(self.ischecked)
         if cbutton.isChecked():
-            
+
             self.hlayout2 = QHBoxLayout(self._main)
-            self.label4,self.combo4 = self.pair(func=self.get_query_entity_from_combo1234,
-                                                text='Second Query Entity »',
-                                                set_cols=False,multiselect=True)
+            self.label4, self.combo4 = self.pair(func=self.get_query_entity_from_combo1234,
+                                                 text='Second Query Entity »',
+                                                 set_cols=False, multiselect=True)
             self.combo4.setCurrentIndex(-1)
             self.populate_combo4()
-            self.label5,self.combo5 = self.pair(func=self.get_guery_entity_from_combo12345,
-                                                text='Select Third Column »',
-                                                set_cols=True,multiselect=False)
+            self.label5, self.combo5 = self.pair(func=self.get_guery_entity_from_combo12345,
+                                                 text='Select Third Column »',
+                                                 set_cols=True, multiselect=False)
             self.combo5.setCurrentIndex(-1)
             self.hlayout2.addWidget(self.label4)
             self.hlayout2.addWidget(self.combo4)
@@ -385,14 +417,15 @@ class dual_percentage_report(QMainWindow):
             self.hlayout2.removeWidget(self.label5)
             self.label5.deleteLater()
             self.label5 = None
-            
+
             self.hlayout2.removeWidget(self.combo5)
             self.combo5.deleteLater()
             self.combo5 = None
 
         self.dnlyt.addLayout(self.hlayout2)
         # self.showMaximized()
-    def populate_combo4(self,text=None):
+
+    def populate_combo4(self, text=None):
         '''
         gets selected index in combo 1 and fills combo 2 according to this selection
         '''
@@ -401,29 +434,28 @@ class dual_percentage_report(QMainWindow):
         # get string of the selected field
         column_text = self.data.columns[index]
         # filter the data based on the selected field
-        data = self.data[column_text] 
+        data = self.data[column_text]
         # get curresponding values of the selected field
-        values = list(data.values) 
+        values = list(data.values)
         # if vlaue is None
-        for i,v in enumerate(values):
-            if v!=v:
-                values[i]='*Not Applicable*'
+        for i, v in enumerate(values):
+            if v != v:
+                values[i] = '*Not Applicable*'
         # get the fill values for combo2
-        first_column = np.unique(values,return_counts=True)
-        
+        first_column = np.unique(values, return_counts=True)
+
         # reset combo4
         try:
             self.combo4.items = [str(d) for d in first_column[0]]
             self.combo4.setCurrentIndex(0)
             # self.combo4.checkedItems=[0]
             self.combo4.clear()
-            self.combo4.addItems( [str(d) for d in first_column[0]])
+            self.combo4.addItems([str(d) for d in first_column[0]])
             # self.combo4.setCurrentIndex(0)
             # print('_______combo4___',self.combo4.currentIndex())
         except Exception as e:
-            print('705___________',e)
+            print('705___________', e)
 
-        
         if self.ischecked:
             try:
                 self.get_query_entity_from_combo1234()
@@ -435,7 +467,7 @@ class dual_percentage_report(QMainWindow):
             except:
                 pass
 
-    def populate_combo2(self,text):
+    def populate_combo2(self, text):
         '''
         gets selected index in combo 1 and fills combo 2 according to this selection
         '''
@@ -445,36 +477,38 @@ class dual_percentage_report(QMainWindow):
         self.first_column_text = self.data.columns[index]
         self.title = self.first_column_text
         # filter the data based on the selected field
-        data = self.data[self.first_column_text] 
+        data = self.data[self.first_column_text]
         # get curresponding values of the selected field
-        values = list(data.values) 
+        values = list(data.values)
         # if vlaue is None
-        for i,v in enumerate(values):
-            if v!=v:
-                values[i]='*Not Applicable*'
+        for i, v in enumerate(values):
+            if v != v:
+                values[i] = '*Not Applicable*'
         # get the fill values for combo2
-        self.first_column = np.unique(values,return_counts=True)
+        self.first_column = np.unique(values, return_counts=True)
         # reset combo2
         self.combo2.items = [str(d) for d in self.first_column[0]]
         self.combo2.clear()
         self.combo2.addItems(self.combo2.items)
         self.combo2.setCurrentIndex(0)
-        ## 
+        ##
         try:
             self.get_query_entity_from_combo23()
         except:
             pass
 
-    def get_query_entity_from_combo1234(self,text=None):
+    def get_query_entity_from_combo1234(self, text=None):
         print('get_query_entity_from_combo1234')
         # index of selected field
         try:
             index1 = self.combo1.currentIndex()
         except:
-            MessageBox(title='Error!',message='Unidentified element for query')
+            MessageBox(title='Error!',
+                       message='Unidentified element for query')
             return
-            
-        if index1<0:return
+
+        if index1 < 0:
+            return
         # get string of the selected field
         combo2_txt = self.data.columns[index1]
         data1 = pd.DataFrame()
@@ -482,10 +516,12 @@ class dual_percentage_report(QMainWindow):
         for index in self.combo2.checkedItems:
             txt = self.combo2.items[index]
             self.combo2_selected_items.append(txt)
-            data1 = pd.concat([data1,self.data.loc[self.data[combo2_txt]==txt]])
+            data1 = pd.concat(
+                [data1, self.data.loc[self.data[combo2_txt] == txt]])
         self.title = f'{combo2_txt} «« {self.combo2_selected_items}'
         index2 = self.combo3.currentIndex()
-        if index2<0:return
+        if index2 < 0:
+            return
         combo3_txt = self.data.columns[index2]
         self.title = f'{self.title} «« {combo3_txt}'
         try:
@@ -494,13 +530,14 @@ class dual_percentage_report(QMainWindow):
             self.combo4.checkedItems = [0]
 
         data2 = pd.DataFrame()
-        self.combo4_selected_items=[]
+        self.combo4_selected_items = []
         for index in np.unique(self.combo4.checkedItems):
-            if index<0:return
+            if index < 0:
+                return
             txt = self.combo4.items[index]
             self.combo4_selected_items.append(txt)
-            data2 = pd.concat([data2,data1.loc[data1[combo3_txt]==txt]])
-            
+            data2 = pd.concat([data2, data1.loc[data1[combo3_txt] == txt]])
+
         self.combo4Table = data2
         self.title = f'{self.title} «« {self.combo4_selected_items}'
         self.get_guery_entity_from_combo12345()
@@ -510,7 +547,8 @@ class dual_percentage_report(QMainWindow):
         try:
             try:
                 index5 = self.combo5.currentIndex()
-                if index5<0:return
+                if index5 < 0:
+                    return
                 # self.combo5.setCurrentIndex(0)
             except:
                 pass
@@ -521,43 +559,46 @@ class dual_percentage_report(QMainWindow):
             # print('????????????????',combo5_txt)
             values = list(self.combo4Table[combo5_txt].values)
             # if vlaue is None
-            for i,v in enumerate(values):
-                if v!=v:
-                    values[i]='not_applicable'
+            for i, v in enumerate(values):
+                if v != v:
+                    values[i] = 'not_applicable'
             # get the fill values for graphics and report
-            self.labels,self.y = np.unique(values,return_counts=True)
+            self.labels, self.y = np.unique(values, return_counts=True)
             s = np.sum(self.y)
             # construct graphic
             self.percentages = [100*y_/s for y_ in self.y]
 
             self.create_chart(labels=self.labels,
-                                percentages=self.percentages,
-                                title=self.title)
+                              percentages=self.percentages,
+                              title=self.title)
             # construct dataframe
-            self.df = pd.DataFrame({'Row Labels':self.labels,'Count':self.y,'percentages':["{:.0%}".format(round(np.sum(p))/100) for p in self.percentages]})
-            self.df = pd.concat([self.df, pd.DataFrame.from_records([{'Row Labels':'Grand Total','Count':s,'percentages':"{:.0%}".format(int(round(np.sum(self.percentages)))/100)}])])
+            self.df = pd.DataFrame({'Row Labels': self.labels, 'Count': self.y, 'percentages': [
+                                   "{:.0%}".format(round(np.sum(p))/100) for p in self.percentages]})
+            self.df = pd.concat([self.df, pd.DataFrame.from_records(
+                [{'Row Labels': 'Grand Total', 'Count': s, 'percentages': "{:.0%}".format(int(round(np.sum(self.percentages)))/100)}])])
 
             self.createTable()
 
-
         except:
             pass
-        
-    def create_chart(self, labels, percentages,title):
+
+    def create_chart(self, labels, percentages, title):
         percentages = [int(round(p)) for p in percentages]
         if (not self.radiob.b1.isChecked()) and (not self.radiob.b2.isChecked()):
             self.radiob.b2.setChecked(True)
         # clearLayout(self.uplyt)
-        
-        if self.radiob.b1.isChecked():     
-            self.graph.generate_plot(data=percentages,labels=labels,plot_type='bar', title=title)       
+
+        if self.radiob.b1.isChecked():
+            self.graph.generate_plot(
+                data=percentages, labels=labels, plot_type='bar', title=title)
             # self.graph = Graph(labels=labels,data=percentages,plot_type='bar' )
             # graph_layout = self.graph.create_layout(title=title)
             # self.uplyt.addLayout(graph_layout)
         elif self.radiob.b2.isChecked():
-            self.graph.generate_plot(data=percentages,labels=labels,plot_type='pie', title=title)       
-    
-    def get_query_entity_from_combo23(self,text=None):
+            self.graph.generate_plot(
+                data=percentages, labels=labels, plot_type='pie', title=title)
+
+    def get_query_entity_from_combo23(self, text=None):
         '''
         fills entities in combo3 usin the selected item in combo2
         '''
@@ -570,10 +611,11 @@ class dual_percentage_report(QMainWindow):
             self.combo2.checkedItems = [0]
         combo2_selected_items = []
         for index in self.combo2.checkedItems:
-            self.query_text =  self.first_column[0][index]
+            self.query_text = self.first_column[0][index]
             combo2_selected_items.append(self.query_text)
-            info = self.data.loc[self.data[self.first_column_text] == self.query_text]
-            self.info = pd.concat([self.info,info])
+            info = self.data.loc[self.data[self.first_column_text]
+                                 == self.query_text]
+            self.info = pd.concat([self.info, info])
             self.combo2.setCurrentIndex(index)
 
         self.title = f'{self.first_column_text} «« {combo2_selected_items}'
@@ -591,27 +633,30 @@ class dual_percentage_report(QMainWindow):
         try:
             text = self.info.columns[self.index]
         except:
-            MessageBox(title='missing entity', message='Selection of at least one query entity is required!')
+            MessageBox(title='missing entity',
+                       message='Selection of at least one query entity is required!')
             return
         # print('line212',text)
         # get curresponding values of the selected field
         values = list(self.info[text].values)
         # if vlaue is None
-        for i,v in enumerate(values):
-            if v!=v:
-                values[i]='not_applicable'
+        for i, v in enumerate(values):
+            if v != v:
+                values[i] = 'not_applicable'
         # get the fill values for graphics and report
-        self.labels,self.y = np.unique(values,return_counts=True)
+        self.labels, self.y = np.unique(values, return_counts=True)
         s = np.sum(self.y)
         # construct graphic
         self.percentages = [int(round(100*y_/s)) for y_ in self.y]
 
         self.create_chart(labels=self.labels,
-                            percentages=self.percentages,
-                            title=self.title)
+                          percentages=self.percentages,
+                          title=self.title)
 
         # construct dataframe
-        self.df = pd.DataFrame({'Row Labels':self.labels,'Count':self.y,'percentages':["{:.0%}".format(round(np.sum(p))/100) for p in self.percentages]})
-        self.df = pd.concat([self.df, pd.DataFrame.from_records([{'Row Labels':'Grand Total','Count':s,'percentages':"{:.0%}".format(int(round(np.sum(self.percentages)))/100)}])])
+        self.df = pd.DataFrame({'Row Labels': self.labels, 'Count': self.y, 'percentages': [
+                               "{:.0%}".format(round(np.sum(p))/100) for p in self.percentages]})
+        self.df = pd.concat([self.df, pd.DataFrame.from_records(
+            [{'Row Labels': 'Grand Total', 'Count': s, 'percentages': "{:.0%}".format(int(round(np.sum(self.percentages)))/100)}])])
 
         self.createTable()
