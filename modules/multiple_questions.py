@@ -155,12 +155,16 @@ class multipleQuestions(QMainWindow):
         self.read_recent_reports()
         self.summary,self.total_summary = self.construct_categories(data=data)
         self.data = data
-        self._main = QWidget()
-        self.setCentralWidget(self._main)
+        self.menu_applied=False
+        self.radiob = None
         self.radiob = radioButtons()
         self.radiob.b1.clicked.connect(self.onChanged)
         self.radiob.b2.clicked.connect(self.onChanged)
+        self.update_layouts()
 
+    def update_layouts(self):
+        self._main = QWidget()
+        self.setCentralWidget(self._main)
         # self.uplyt = QVBoxLayout()
         self.dnlyt = QVBoxLayout()
         self.up = QFrame(self)       
@@ -169,8 +173,7 @@ class multipleQuestions(QMainWindow):
         self.graph = Graph(parent=self)
         self.graph_layout = self.graph.create_layout()
         self.up.setLayout(self.graph_layout)
-        
-        
+
         self.down = QFrame(self)       
         self.down.setFrameShape(QFrame.StyledPanel)
         self.down.setLayout(self.dnlyt)
@@ -213,24 +216,27 @@ class multipleQuestions(QMainWindow):
         exitAction.setStatusTip('Exit application')
         exitAction.triggered.connect(self.close)
 
-        menuBar = self.menuBar()
-        file_menu = QMenu("&File", self)
-        menuBar.addMenu(file_menu)
+        if not self.menu_applied:
+            menuBar = self.menuBar()
+            file_menu = QMenu("&File", self)
+            menuBar.addMenu(file_menu)
 
-        file_menu.addMenu(self.new_recentAction)
-        file_menu.addAction(save_file_action)
-        file_menu.addAction(exitAction)
-        self.label = QLabel(self)
-        self.label.move(50,16)
-        self.label.setText('Select Column to be Analyzed')
-        self.label.adjustSize()
+            file_menu.addMenu(self.new_recentAction)
+            file_menu.addAction(save_file_action)
+            file_menu.addAction(exitAction)
+            self.menu_applied=True
+
+            self.label = QLabel(self)
+            self.label.move(50,16)
+            self.label.setText('Select Column to be Analyzed')
+            self.label.adjustSize()
+            
+            self.combo = QComboBox(self)
+            self.combo.move(50, 50)
+            
+            self.combo.activated[str].connect(self.onChanged)
         
-        self.combo = QComboBox(self)
-        self.combo.move(50, 50)
-        
-        self.combo.activated[str].connect(self.onChanged)
-    
-        self.combo.addItems(self.main_categories.keys())
+            self.combo.addItems(self.main_categories.keys())
         
         self.layout.addWidget(self.label)
         self.layout.addWidget(self.combo)
@@ -354,10 +360,12 @@ class multipleQuestions(QMainWindow):
         if (not self.radiob.b1.isChecked()) and (not self.radiob.b2.isChecked()):
             self.radiob.b2.setChecked(True)
         title = f'Multiple Selection: {text}'  
-        if self.radiob.b1.isChecked():   
+        if self.radiob.b1.isChecked(): 
+            self.update_layouts()   
             self.graph.generate_plot(labels=self.summary[text].keys(),data=self.percentage1,plot_type='bar',title=title )
             # self.uplyt.addLayout(graph_layout)
         elif self.radiob.b2.isChecked():
+            self.update_layouts() 
             # self.graph = Graph(labels=self.summary[text].keys(),data=self.percentage1,plot_type='pie' )
             self.graph.generate_plot(labels=self.summary[text].keys(),data=self.percentage1,plot_type='pie',title=title )
             # graph_layout = self.graph.create_layout(title)

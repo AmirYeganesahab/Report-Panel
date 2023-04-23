@@ -152,45 +152,34 @@ class percentage_report(QMainWindow):
         self.default_dir =os.getcwd()
         self.recent_reports_path = os.path.join(self.default_dir,'recent_reports.history')
         self.read_recent_reports()
-        
+        self.menu_applied=False
         self.data = data
-        self._main = QWidget()
-        self.setCentralWidget(self._main)
+        
         self.radiob = None
         self.radiob = radioButtons()
         self.radiob.b1.clicked.connect(self.onChanged)
         self.radiob.b2.clicked.connect(self.onChanged) 
-        
-        # self.uplyt = QVBoxLayout(self._main)
+        self.update_layouts()
+    
+    def update_layouts(self):
+        self._main = QWidget()
+        self.setCentralWidget(self._main)
         self.dnlyt = QVBoxLayout(self._main)
         self.up = None
         self.up = QFrame(self._main)       
         self.up.setFrameShape(QFrame.StyledPanel)
-        # self.up.setLayout(self.uplyt)
         self.down = None
         self.down = QFrame(self._main)       
         self.down.setFrameShape(QFrame.StyledPanel)
         self.down.setLayout(self.dnlyt)
-        
-        # self.ttop = QVBoxLayout(self)                   
-        # self.ttop.addWidget(self.radiob)
-        # self.uplyt.addLayout(self.ttop)
-        
-        # self.tbottom = QVBoxLayout(self)
-        # self.uplyt.addLayout(self.tbottom)
-        
+        self.layout = None
         self.layout = QVBoxLayout(self._main)
-        # self.layout.addWidget(self.radiob)
         self.graph = None
         self.graph_layout = None
         self.graph = Graph()
         self.graph_layout = self.graph.create_layout()
         self.up.setLayout(self.graph_layout)
-        # self.fig = Figure(figsize=(5, 4), dpi=100)
 
-        # self.static_canvas = FigureCanvas(self.fig)
-        # self.uplyt.addWidget(self.static_canvas)
-        
         splitter = QSplitter(QtCore.Qt.Vertical)
         splitter.setStretchFactor(1, 1)
         splitter.addWidget(self.up)
@@ -202,7 +191,8 @@ class percentage_report(QMainWindow):
 
         self.initialize()
         self.update_recent_reports()
-    
+
+
     def initialize(self):
         self.setWindowTitle('Single Selection')
         self.setWindowIcon(QIcon('web-1.png'))
@@ -225,30 +215,31 @@ class percentage_report(QMainWindow):
         exitAction.setShortcut('Ctrl+Q')
         exitAction.setStatusTip('Exit application')
         exitAction.triggered.connect(self.close)
+        if not self.menu_applied:
+            menuBar = self.menuBar()
+            file_menu = QMenu("&File", self)
+            menuBar.addMenu(file_menu)
 
-        menuBar = self.menuBar()
-        file_menu = QMenu("&File", self)
-        menuBar.addMenu(file_menu)
+            file_menu.addMenu(self.new_recentAction)
+            file_menu.addAction(save_file_action)
+            file_menu.addAction(exitAction)
+            self.menu_applied=True
 
-        file_menu.addMenu(self.new_recentAction)
-        file_menu.addAction(save_file_action)
-        file_menu.addAction(exitAction)
-
-        self.label = QLabel(self)
-        self.label.move(50,16)
-        self.label.setText('Select Column to be Analyzed')
-        self.label.adjustSize()
-        
-        self.combo = QComboBox(self)
-        self.combo.move(50, 50)
-        
-        self.combo.activated[str].connect(self.onChanged)
-        cols = [d.split(os.sep)[-1] for d in self.data.columns]
-        self.combo.addItems(cols)
+            self.label = QLabel(self)
+            self.label.move(50,16)
+            self.label.setText('Select Column to be Analyzed')
+            self.label.adjustSize()
+            
+            self.combo = QComboBox(self)
+            self.combo.move(50, 50)
+            
+            self.combo.activated[str].connect(self.onChanged)
+            cols = [d.split(os.sep)[-1] for d in self.data.columns]
+            self.combo.addItems(cols)
 
         self.layout.addWidget(self.label)
         self.layout.addWidget(self.combo)
-        
+            
         self.show()
     
     def update_recent_reports(self):
@@ -329,13 +320,15 @@ class percentage_report(QMainWindow):
         if not (self.radiob.b1.isChecked() or self.radiob.b2.isChecked()):
             self.radiob.b1.setChecked(True)
         title = f'Frequency Analysis: {text}'
-        if self.radiob.b1.isChecked():            
+        if self.radiob.b1.isChecked():   
+            self.update_layouts()     
             self.graph.generate_plot(data=percentages,labels=self.labels,plot_type='bar', title=title)
             # self.graph = Graph(labels=self.labels,data=percentages,plot_type='bar' )
             # graph_layout = self.graph.create_layout(title=title)
             # self.uplyt.addLayout(graph_layout)
             
         elif self.radiob.b2.isChecked():
+            self.update_layouts() 
             self.graph.generate_plot(data=percentages,labels=self.labels,plot_type='pie', title=title)
             # self.graph = Graph(labels=self.labels,data=percentages,plot_type='pie' )
             # graph_layout = self.graph.create_layout(title=title)
