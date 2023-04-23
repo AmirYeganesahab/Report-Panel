@@ -253,10 +253,10 @@ class APP(QMainWindow):
         self.reports = dual_percentage_report(parent =self,data = self.data)
 
     def percentage_report(self):
-        self.reports = percentage_report(parent =self,data = self.data)
+        self.reports = percentage_report(data = self.data)
 
     def multipeQuestion_report(self):
-        self.reports = multipleQuestions(parent =self,data = self.data)
+        self.reports = multipleQuestions(data = self.data)
 
 
     def comparison(self):
@@ -303,6 +303,7 @@ class APP(QMainWindow):
                     print('____________________')
             
         self.tableWidget.move(0,0)
+        self.tableWidget.setEditTriggers(QTableWidget.NoEditTriggers)
         print('table updated')
 
     def createTable(self)->None:
@@ -342,6 +343,7 @@ class APP(QMainWindow):
                     print('____________________')
             
         self.tableWidget.move(0,0)
+        self.tableWidget.setEditTriggers(QTableWidget.NoEditTriggers)
         print('table created')
 
 
