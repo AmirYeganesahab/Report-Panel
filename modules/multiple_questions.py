@@ -388,5 +388,5 @@ class multipleQuestions(QMainWindow):
                     print(e)
                     # print(type(d))
                     print('____________________')
-            
+        self.reporttableWidget.setEditTriggers(QTableWidget.NoEditTriggers)
         print('table created')

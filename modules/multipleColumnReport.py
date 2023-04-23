@@ -332,6 +332,7 @@ class dual_percentage_report(QMainWindow):
                         print('____________________')
 
             self.reporttableWidget.move(0, 0)
+            self.reporttableWidget.setEditTriggers(QTableWidget.NoEditTriggers)
             print('table created')
         except:
             pass

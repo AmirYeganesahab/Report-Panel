@@ -156,17 +156,18 @@ class percentage_report(QMainWindow):
         self.data = data
         self._main = QWidget()
         self.setCentralWidget(self._main)
+        self.radiob = None
         self.radiob = radioButtons()
         self.radiob.b1.clicked.connect(self.onChanged)
         self.radiob.b2.clicked.connect(self.onChanged) 
         
         # self.uplyt = QVBoxLayout(self._main)
         self.dnlyt = QVBoxLayout(self._main)
-        
+        self.up = None
         self.up = QFrame(self._main)       
         self.up.setFrameShape(QFrame.StyledPanel)
         # self.up.setLayout(self.uplyt)
-        
+        self.down = None
         self.down = QFrame(self._main)       
         self.down.setFrameShape(QFrame.StyledPanel)
         self.down.setLayout(self.dnlyt)
@@ -180,8 +181,9 @@ class percentage_report(QMainWindow):
         
         self.layout = QVBoxLayout(self._main)
         # self.layout.addWidget(self.radiob)
-        
-        self.graph = Graph(parent=self)
+        self.graph = None
+        self.graph_layout = None
+        self.graph = Graph()
         self.graph_layout = self.graph.create_layout()
         self.up.setLayout(self.graph_layout)
         # self.fig = Figure(figsize=(5, 4), dpi=100)
@@ -372,5 +374,6 @@ class percentage_report(QMainWindow):
                     print(e)
                     # print(type(d))
                     print('____________________')
+        self.reporttableWidget.setEditTriggers(QTableWidget.NoEditTriggers)
             
         print('table created')

@@ -989,6 +989,7 @@ class ComparisonWindow(QWidget):
                         print(e)
                         print('____________________')
             self.left_pannel.reporttableWidget.move(0, 0)
+            self.left_pannel.reporttableWidget.setEditTriggers(QTableWidget.NoEditTriggers)
             print('table created')
         except Exception as e:
             print('in create_left_table \n', e)
@@ -1015,6 +1016,7 @@ class ComparisonWindow(QWidget):
                         print('____________________')
 
             self.right_pannel.reporttableWidget.move(0, 0)
+            self.right_pannel.reporttableWidget.setEditTriggers(QTableWidget.NoEditTriggers)
             print('table created')
         except Exception as e:
             print('in create_right_table \n', e)
