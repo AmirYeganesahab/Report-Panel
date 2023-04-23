@@ -66,16 +66,41 @@ class Graph(QDialog):
         self.figure.clear()
         self.canvas = FigureCanvas(self.figure)
         self.toolbar = NavigationToolbar(self.canvas,parent=None)
+
+        self.zoom_in_button = QPushButton('+')
+        self.zoom_out_button = QPushButton('-')
         # creating a Vertical Box layout
         layout = QVBoxLayout()
         # adding tool bar to the layout
         layout.addWidget(self.toolbar)
         # adding canvas to the layout
         layout.addWidget(self.canvas)
+
+        hlayout = QHBoxLayout()
+        hlayout.addWidget(self.zoom_in_button, alignment=Qt.AlignRight)
+        hlayout.addWidget(self.zoom_out_button, alignment=Qt.AlignRight)
+        hlayout.setAlignment(Qt.AlignHCenter)
+        layout.addLayout(hlayout)
+        self.zoom_in_button.clicked.connect(self.zoom_in)
+        self.zoom_out_button.clicked.connect(self.zoom_out)
         # setting layout to the main window
         self.figure.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.2, wspace=0.5, hspace=0.5)
         return layout
   
+    
+    def zoom_in(self):
+        ax = self.figure.gca()
+        ax.set_xlim(ax.get_xlim()[0]*0.9, ax.get_xlim()[1]*0.9)
+        ax.set_ylim(ax.get_ylim()[0]*0.9, ax.get_ylim()[1]*0.9)
+        self.canvas.draw()
+
+    def zoom_out(self):
+        ax = self.figure.gca()
+        ax.set_xlim(ax.get_xlim()[0]*1.1, ax.get_xlim()[1]*1.1)
+        ax.set_ylim(ax.get_ylim()[0]*1.1, ax.get_ylim()[1]*1.1)
+        self.canvas.draw()
+
+
     def generate_plot(self, labels,data,plot_type='bar',title=''):
         thisColors = []
         for i,d in enumerate(data):
@@ -150,7 +175,7 @@ class multipleQuestions(QMainWindow):
     def __init__(self,data, parent=None):
         super(multipleQuestions, self).__init__(parent)
         self.default_dir =os.getcwd()
-        self.check = [True,False]
+        
         self.recent_reports_path = os.path.join(self.default_dir,'recent_reports.history')
         self.read_recent_reports()
         self.summary,self.total_summary = self.construct_categories(data=data)
@@ -166,18 +191,19 @@ class multipleQuestions(QMainWindow):
         self._main = QWidget()
         self.setCentralWidget(self._main)
         # self.uplyt = QVBoxLayout()
-        self.dnlyt = QVBoxLayout()
-        self.up = QFrame(self)       
+        self.dnlyt = QVBoxLayout(self._main)
+        self.up=None
+        self.up = QFrame(self._main)       
         self.up.setFrameShape(QFrame.StyledPanel)
         # self.up.setLayout(self.uplyt)
-        self.graph = Graph(parent=self)
+        self.graph = Graph()
         self.graph_layout = self.graph.create_layout()
         self.up.setLayout(self.graph_layout)
-
-        self.down = QFrame(self)       
+        self.down=None
+        self.down = QFrame(self._main)       
         self.down.setFrameShape(QFrame.StyledPanel)
         self.down.setLayout(self.dnlyt)
-        
+        self.layout=None
         self.layout = QVBoxLayout(self._main)
         self.layout.addWidget(self.radiob)
         self.fig = Figure(figsize=(5, 4), dpi=100)
@@ -197,12 +223,13 @@ class multipleQuestions(QMainWindow):
         self.setWindowTitle('Multiple Selection')
         self.setWindowIcon(QIcon('web-1.png'))
         self.showMaximized()
+        # table
         self.reporttableWidget = QTableWidget()
         fixedfont = QFont("Roboto")
         fixedfont.setPointSize(12)
         self.reporttableWidget.setFont(fixedfont)
         self.dnlyt.addWidget(self.reporttableWidget)
-        
+        # menu actions
         self.new_recentAction = QMenu('&Recent Reports', self)        
         self.new_recentAction.triggered.connect(self.populateRecent)
 
@@ -344,10 +371,7 @@ class multipleQuestions(QMainWindow):
         if total_count!=total_sum:
             print('something is wrong')
         
-        self.df = pd.DataFrame({'Row Labels':self.summary[text].keys(),'Count':true_count, 'percentage':percentage})
-        new_df = pd.DataFrame.from_records([{'Row Labels':'Total','Count':total_count, 'percentage':f'{total_percentage}%'}])
-        self.df = pd.concat([self.df, new_df])#,'Frequencies':"{:.0%}".format(int(round(np.sum(values)))/100)}])])
-        self.createTable()
+        
         
         try:
             self.action_history.append(text)
@@ -374,6 +398,11 @@ class multipleQuestions(QMainWindow):
 
         self._main.update()
         self.showMaximized()
+        self.df = pd.DataFrame({'Row Labels':self.summary[text].keys(),'Count':true_count, 'percentage':percentage})
+        new_df = pd.DataFrame.from_records([{'Row Labels':'Total','Count':total_count, 'percentage':f'{total_percentage}%'}])
+        self.df = pd.concat([self.df, new_df])#,'Frequencies':"{:.0%}".format(int(round(np.sum(values)))/100)}])])
+        print(self.df)
+        self.createTable()
 
         
     def createTable(self):
@@ -396,5 +425,6 @@ class multipleQuestions(QMainWindow):
                     print(e)
                     # print(type(d))
                     print('____________________')
+        self.reporttableWidget.move(0, 0)
         self.reporttableWidget.setEditTriggers(QTableWidget.NoEditTriggers)
         print('table created')

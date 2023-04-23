@@ -75,6 +75,9 @@ class Graph(QDialog):
 
         self.canvas = FigureCanvas(self.figure)
         toolbar = NavigationToolbar(self.canvas, parent=None)
+
+        self.zoom_in_button = QPushButton('+')
+        self.zoom_out_button = QPushButton('-')
         # creating a Vertical Box layout
 
         layout = QVBoxLayout()
@@ -83,6 +86,14 @@ class Graph(QDialog):
         layout.addWidget(toolbar)
         # adding canvas to the layout
         layout.addWidget(self.canvas)
+
+        hlayout = QHBoxLayout()
+        hlayout.addWidget(self.zoom_in_button, alignment=Qt.AlignRight)
+        hlayout.addWidget(self.zoom_out_button, alignment=Qt.AlignRight)
+        hlayout.setAlignment(Qt.AlignHCenter)
+        layout.addLayout(hlayout)
+        self.zoom_in_button.clicked.connect(self.zoom_in)
+        self.zoom_out_button.clicked.connect(self.zoom_out)
         # setting layout to the main window
         self.figure.subplots_adjust(
             left=0.1, right=0.9, top=0.9, bottom=0.2, wspace=0.5, hspace=0.5)
@@ -90,6 +101,18 @@ class Graph(QDialog):
         self.canvas.draw()
         print('create_layout')
         return layout
+
+    def zoom_in(self):
+        ax = self.figure.gca()
+        ax.set_xlim(ax.get_xlim()[0]*0.9, ax.get_xlim()[1]*0.9)
+        ax.set_ylim(ax.get_ylim()[0]*0.9, ax.get_ylim()[1]*0.9)
+        self.canvas.draw()
+
+    def zoom_out(self):
+        ax = self.figure.gca()
+        ax.set_xlim(ax.get_xlim()[0]*1.1, ax.get_xlim()[1]*1.1)
+        ax.set_ylim(ax.get_ylim()[0]*1.1, ax.get_ylim()[1]*1.1)
+        self.canvas.draw()
 
     def generate_plot(self, data, labels, plot_type='bar'):
         thisColors = []
