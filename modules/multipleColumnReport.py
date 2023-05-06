@@ -81,6 +81,8 @@ class Graph(QDialog):
         self.toolbar = NavigationToolbar(self.canvas, parent=None)
 
         self.zoom_in_button = QPushButton('+')
+        self.home_button = QPushButton()
+        self.home_button.setIcon(QIcon('home.jpeg'))
         self.zoom_out_button = QPushButton('-')
         # creating a Vertical Box layout
 
@@ -92,16 +94,26 @@ class Graph(QDialog):
 
         hlayout = QHBoxLayout()
         hlayout.addWidget(self.zoom_in_button, alignment=Qt.AlignRight)
+        hlayout.addWidget(self.home_button, alignment=Qt.AlignRight)
         hlayout.addWidget(self.zoom_out_button, alignment=Qt.AlignRight)
         hlayout.setAlignment(Qt.AlignHCenter)
         layout.addLayout(hlayout)
         self.zoom_in_button.clicked.connect(self.zoom_in)
+        self.home_button.clicked.connect(self.home)
         self.zoom_out_button.clicked.connect(self.zoom_out)
         # setting layout to the main window
         self.figure.subplots_adjust(
             left=0.1, right=0.9, top=0.9, bottom=0.2, wspace=0.5, hspace=0.5)
+        
+        self.initial_xlim = None
+        self.initial_ylim = None
         return layout
 
+    def home(self):
+        ax = self.figure.gca()
+        ax.set_xlim(self.initial_xlim)
+        ax.set_ylim(self.initial_ylim)
+        self.canvas.draw()
 
     def zoom_in(self):
         ax = self.figure.gca()
@@ -165,6 +177,9 @@ class Graph(QDialog):
             legend.set_draggable(state=True, update='loc', use_blit=False)
 
             legend.bbox_to_anchor = oldLegPos
+
+        self.initial_xlim = ax.get_xlim()
+        self.initial_ylim = ax.get_ylim()
         # refresh canvas
         self.canvas.draw()
 
