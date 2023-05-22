@@ -257,7 +257,7 @@ class right():
         self.reporttableWidget = QTableWidget()
 
 
-class ComparisonWindow(QWidget):
+class ComparisonWindow(QMainWindow):
 
     def __init__(self, data=None, parent=None):
         super(ComparisonWindow, self).__init__()
@@ -290,7 +290,7 @@ class ComparisonWindow(QWidget):
         exitAction.setShortcut('Ctrl+Q')
         exitAction.setStatusTip('Exit application')
         exitAction.triggered.connect(self.close)
-        self.menubar = QMenuBar()
+        self.menubar = self.menuBar()
         file_menu = QMenu("&File", self)
         self.menubar.addMenu(file_menu)
         file_menu.addAction(save_file_action)
@@ -323,11 +323,13 @@ class ComparisonWindow(QWidget):
             print(e)
 
     def constructWindow(self, splitter):
-        self.vbox = QVBoxLayout(self)
+        self._main = QWidget()
+        self.setCentralWidget(self._main)
+        self.vbox = QVBoxLayout(self._main)
         self.vbox.addWidget(self.menubar)
         self.vbox.addWidget(splitter)
-        self.setLayout(self.vbox)
-        QApplication.setStyle(QStyleFactory.create('Cleanlooks'))
+        # self.setLayout(self.vbox)
+        # QApplication.setStyle(QStyleFactory.create('Cleanlooks'))
 
     def constructSplitters(self):
         splitter1 = QSplitter(Qt.Horizontal)
