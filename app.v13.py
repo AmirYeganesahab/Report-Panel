@@ -88,7 +88,7 @@ class APP(QMainWindow):
         e:str
         options:QFileDialog.Options = QFileDialog.Options()
         options |= QFileDialog.DontUseNativeDialog
-        self.fileNames_new, _ = QFileDialog.getOpenFileNames(self,"QFileDialog.getOpenFileName()", "","xlsx (*.xlsx);;csv (*.csv);;sql (*.sql);;sqlite (*.sqlite)", options=options)
+        self.fileNames_new, _ = QFileDialog.getOpenFileNames(self,"QFileDialog.getOpenFileName()", "","xlsx (*.xlsx)", options=options)
         if len(self.fileNames_new)==0:return
         try:
             self.fileNames.extend(self.fileNames_new)
@@ -104,7 +104,7 @@ class APP(QMainWindow):
     def addFileDialog(self):
         options:QFileDialog.Options = QFileDialog.Options()
         options |= QFileDialog.DontUseNativeDialog
-        self.fileNames_added, _ = QFileDialog.getOpenFileNames(self,"QFileDialog.getOpenFileName()", "","xlsx (*.xlsx);;csv (*.csv);;sql (*.sql);;sqlite (*.sqlite)", options=options)
+        self.fileNames_added, _ = QFileDialog.getOpenFileNames(self,"QFileDialog.getOpenFileName()", "","xlsx (*.xlsx)", options=options)
         print('new file opended:',self.fileNames_added)
         if len(self.fileNames_added)==0:return
         try:
@@ -129,6 +129,17 @@ class APP(QMainWindow):
             event.accept()
         else:
             event.ignore()
+    
+    # def NopropperFileType(self, event):
+    #     warn:Union[QMessageBox,int]
+    #     warn = QMessageBox()
+    #     warn.setText("XLSX (EXCEL) File Type is needed")
+    #     warn.setStandardButtons(QMessageBox.Ok)
+    #     warn = warn.exec()
+    #     if warn == QMessageBox.Ok:
+    #         event.accept()
+    #     else:
+    #         event.ignore()
     
     def initialize(self):
         self.showMaximized()
@@ -250,18 +261,17 @@ class APP(QMainWindow):
         self.setCentralWidget(self.tableWidget) 
 
     def dual_percentage_report(self):
-        self.reports = dual_percentage_report(parent =self,data = self.data)
+        self.reports1 = dual_percentage_report(data = self.data)
 
     def percentage_report(self):
-        self.reports = percentage_report(data = self.data)
+        self.reports2 = percentage_report(data = self.data)
 
     def multipeQuestion_report(self):
-        self.reports = multipleQuestions(data = self.data)
-
-
+        self.reports3 = multipleQuestions(data = self.data)
+        
     def comparison(self):
-        self.reports = ComparisonWindow(parent=self,data = self.data)
-        self.reports.show()
+        self.reports4 = ComparisonWindow(data = self.data)
+        # self.reports.show()
 
     def updateTable(self)->None:
         i:int
@@ -280,6 +290,9 @@ class APP(QMainWindow):
             elif 'sql' in p_:
                 conn = sqlite3.connect(p)
                 data = pd.read_sql_query("SELECT * FROM UN", conn)
+            # else:
+            #     self.NopropperFileType()
+            #     return None
             new_data:pd.core.frame.DataFrame = pd.concat([new_data,data])
         
         self.data = pd.concat([self.data,new_data])
